@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { db } from '../../db/index.js';
+import goalService from '../../services/goalService';
+import { showError, showSuccess, withErrorHandling } from '../../utils/errorHandler';
 
 const GoalManager = () => {
   const [formData, setFormData] = useState({
@@ -16,13 +17,10 @@ const GoalManager = () => {
   // 加载目标列表
   const loadGoals = async () => {
     try {
-      const goalsList = await db.goals
-        .orderBy('createdAt')
-        .reverse()
-        .toArray();
-      setGoals(goalsList);
+      const result = await goalService.getAllGoals();
+      setGoals(result);
     } catch (error) {
-      console.error('加载目标列表失败:', error);
+      showError(error, '加载目标列表');
     }
   };
 
@@ -38,10 +36,9 @@ const GoalManager = () => {
   // 添加目标
   const handleAddGoal = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim() || !formData.startDate || !formData.endDate) {
-      setMessage('请填写目标名称和日期');
-      setTimeout(() => setMessage(''), 3000);
+      showError(new Error('请填写目标名称和日期'), '表单验证');
       return;
     }
 
@@ -51,12 +48,14 @@ const GoalManager = () => {
         ...formData,
         progress: 0,
         completed: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        status: 'not_started'
       };
 
-      await db.goals.add(newGoal);
-      setMessage('目标已添加');
+      const result = await withErrorHandling(
+        () => goalService.createGoal(newGoal),
+        '添加目标',
+        result.message
+      );
 
       // 清空表单
       setFormData({
@@ -70,11 +69,8 @@ const GoalManager = () => {
       // 重新加载目标列表
       await loadGoals();
 
-      setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('添加目标失败:', error);
-      setMessage('添加失败，请重试');
-      setTimeout(() => setMessage(''), 3000);
+      // 错误已经在 withErrorHandling 中处理了
     } finally {
       setLoading(false);
     }
@@ -84,48 +80,40 @@ const GoalManager = () => {
   const updateGoalProgress = async (goalId, currentProgress) => {
     const newProgress = prompt(`请输入新的进度 (0-100):`, currentProgress);
     if (newProgress === null) return;
-    
+
     const progress = parseInt(newProgress);
     if (isNaN(progress) || progress < 0 || progress > 100) {
-      alert('请输入0-100之间的数字');
+      showError(new Error('请输入0-100之间的数字'), '输入验证');
       return;
     }
 
     try {
-      const updateData = {
-        progress,
-        completed: progress === 100,
-        updatedAt: new Date().toISOString()
-      };
+      const result = await withErrorHandling(
+        () => goalService.updateGoalProgress(goalId, progress),
+        '更新目标进度',
+        result.message
+      );
 
-      await db.goals.where('id').equals(goalId).modify(updateData);
-      setMessage('目标进度已更新');
       await loadGoals();
-      setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('更新目标进度失败:', error);
-      setMessage('更新失败，请重试');
-      setTimeout(() => setMessage(''), 3000);
+      // 错误已经在 withErrorHandling 中处理了
     }
   };
 
   // 切换目标完成状态
   const toggleGoalCompletion = async (goalId, currentCompleted) => {
     try {
-      const updateData = {
-        completed: !currentCompleted,
-        progress: !currentCompleted ? 100 : 0,
-        updatedAt: new Date().toISOString()
-      };
+      const newProgress = !currentCompleted ? 100 : 0;
 
-      await db.goals.where('id').equals(goalId).modify(updateData);
-      setMessage(`目标已标记为${!currentCompleted ? '完成' : '未完成'}`);
+      const result = await withErrorHandling(
+        () => goalService.updateGoalProgress(goalId, newProgress),
+        '更新目标状态',
+        `目标已标记为${!currentCompleted ? '完成' : '未完成'}`
+      );
+
       await loadGoals();
-      setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('更新目标状态失败:', error);
-      setMessage('更新失败，请重试');
-      setTimeout(() => setMessage(''), 3000);
+      // 错误已经在 withErrorHandling 中处理了
     }
   };
 
@@ -134,14 +122,15 @@ const GoalManager = () => {
     if (!confirm(`确定要删除目标"${goalName}"吗？`)) return;
 
     try {
-      await db.goals.where('id').equals(goalId).delete();
-      setMessage('目标已删除');
+      const result = await withErrorHandling(
+        () => goalService.deleteGoal(goalId),
+        '删除目标',
+        result.message
+      );
+
       await loadGoals();
-      setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('删除目标失败:', error);
-      setMessage('删除失败，请重试');
-      setTimeout(() => setMessage(''), 3000);
+      // 错误已经在 withErrorHandling 中处理了
     }
   };
 
