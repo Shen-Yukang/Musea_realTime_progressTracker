@@ -1,0 +1,29 @@
+services:
+  # 只启动后端，使用 SQLite
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # 只启动前端
+  frontend:
+    build:
+      context: ./progress-tracker-v2
+      dockerfile: ../Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:3001/api
+    volumes:
+      - ./progress-tracker-v2:/app
+      - /app/node_modules
+    command: npm run dev

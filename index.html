@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日进展追踪与反思助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- 头部 -->
+        <header class="mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-center text-indigo-700 mb-2">
+                <i class="fas fa-chart-line mr-2"></i>每日进展追踪与反思助手
+            </h1>
+            <p class="text-center text-gray-600">记录进展，监控目标，适时反思，调整方向</p>
+        </header>
+
+        <!-- 导航标签 -->
+        <div class="flex flex-wrap mb-6 border-b">
+            <button class="tab-btn px-4 py-2 font-medium text-indigo-600 border-b-2 border-indigo-600" data-tab="progress">
+                <i class="fas fa-tasks mr-2"></i>今日进展
+            </button>
+            <button class="tab-btn px-4 py-2 font-medium text-gray-500 hover:text-indigo-600" data-tab="overview">
+                <i class="fas fa-chart-bar mr-2"></i>进展概览
+            </button>
+            <button class="tab-btn px-4 py-2 font-medium text-gray-500 hover:text-indigo-600" data-tab="reflection">
+                <i class="fas fa-lightbulb mr-2"></i>反思提醒
+            </button>
+            <button class="tab-btn px-4 py-2 font-medium text-gray-500 hover:text-indigo-600" data-tab="goals">
+                <i class="fas fa-bullseye mr-2"></i>目标管理
+            </button>
+        </div>
+
+        <!-- 今日进展标签页 -->
+        <div id="progress-tab" class="tab-content">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-calendar-day mr-2 text-indigo-600"></i>今日进展记录
+                </h2>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">日期</label>
+                    <input type="date" id="progress-date" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">今日完成的主要任务</label>
+                    <textarea id="main-tasks" rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="列出今天完成的主要任务..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">遇到的问题和挑战</label>
+                    <textarea id="challenges" rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="描述今天遇到的问题和挑战..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">学到的经验或新知识</label>
+                    <textarea id="learnings" rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="记录今天学到的经验或新知识..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">明日计划</label>
+                    <textarea id="next-day-plan" rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="计划明天要完成的任务..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">今日进展评分 (1-10分)</label>
+                    <input type="range" id="progress-rating" min="1" max="10" value="5" class="w-full">
+                    <div class="flex justify-between text-xs text-gray-500">
+                        <span>1 (很差)</span>
+                        <span id="rating-value" class="font-medium">5</span>
+                        <span>10 (很好)</span>
+                    </div>
+                </div>
+
+                <button id="save-progress" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                    <i class="fas fa-save mr-2"></i>保存今日进展
+                </button>
+            </div>
+
+            <!-- 最近进展记录 -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-history mr-2 text-indigo-600"></i>最近进展记录
+                </h2>
+                <div id="recent-progress" class="space-y-4">
+                    <!-- 动态加载最近进展记录 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 进展概览标签页 -->
+        <div id="overview-tab" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-chart-line mr-2 text-indigo-600"></i>进展趋势
+                </h2>
+                <div class="h-64">
+                    <canvas id="progress-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                        <i class="fas fa-bullseye mr-2 text-indigo-600"></i>目标完成情况
+                    </h2>
+                    <div id="goals-progress" class="space-y-4">
+                        <!-- 动态加载目标完成情况 -->
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                        <i class="fas fa-exclamation-triangle mr-2 text-indigo-600"></i>需要注意的问题
+                    </h2>
+                    <div id="issues-alert" class="space-y-3">
+                        <!-- 动态加载需要注意的问题 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 反思提醒标签页 -->
+        <div id="reflection-tab" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-brain mr-2 text-indigo-600"></i>反思提醒
+                </h2>
+                
+                <div id="reflection-alert" class="mb-6 p-4 rounded-md">
+                    <!-- 动态加载反思提醒 -->
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">今日反思</label>
+                    <textarea id="daily-reflection" rows="6" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="记录今天的反思，包括：是否在正确的方向上？是否有瞎忙的情况？需要调整什么？..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">需要调整的方向或策略</label>
+                    <textarea id="adjustments" rows="4" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="列出需要调整的方向或策略..."></textarea>
+                </div>
+
+                <button id="save-reflection" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                    <i class="fas fa-save mr-2"></i>保存反思记录
+                </button>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-history mr-2 text-indigo-600"></i>历史反思记录
+                </h2>
+                <div id="reflection-history" class="space-y-4">
+                    <!-- 动态加载历史反思记录 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 目标管理标签页 -->
+        <div id="goals-tab" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-plus-circle mr-2 text-indigo-600"></i>添加新目标
+                </h2>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">目标名称</label>
+                    <input type="text" id="goal-name" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="输入目标名称...">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">目标描述</label>
+                    <textarea id="goal-description" rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="详细描述这个目标..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-700 mb-2">开始日期</label>
+                        <input type="date" id="goal-start-date" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">目标截止日期</label>
+                        <input type="date" id="goal-end-date" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">优先级</label>
+                    <select id="goal-priority" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="high">高</option>
+                        <option value="medium" selected>中</option>
+                        <option value="low">低</option>
+                    </select>
+                </div>
+
+                <button id="add-goal" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                    <i class="fas fa-plus mr-2"></i>添加目标
+                </button>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">
+                    <i class="fas fa-list-ul mr-2 text-indigo-600"></i>当前目标列表
+                </h2>
+                <div id="goals-list" class="space-y-4">
+                    <!-- 动态加载目标列表 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-md shadow-lg transform transition-transform duration-300 translate-y-20">
+        <span id="toast-message"></span>
+    </div>
+
+    <script>
+        // 初始化数据
+        let progressData = JSON.parse(localStorage.getItem('progressData')) || [];
+        let reflectionData = JSON.parse(localStorage.getItem('reflectionData')) || [];
+        let goalsData = JSON.parse(localStorage.getItem('goalsData')) || [];
+        let chart = null;
+
+        // 设置今天的日期为默认值
+        document.getElementById('progress-date').valueAsDate = new Date();
+
+        // 标签页切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                
+                // 更新标签按钮样式
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
+                    b.classList.add('text-gray-500');
+                });
+                btn.classList.remove('text-gray-500');
+                btn.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
+                
+                // 显示对应内容
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+                
+                // 加载对应数据
+                if (tabId === 'overview') {
+                    loadProgressChart();
+                    loadGoalsProgress();
+                    loadIssuesAlert();
+                } else if (tabId === 'reflection') {
+                    loadReflectionAlert();
+                    loadReflectionHistory();
+                } else if (tabId === 'goals') {
+                    loadGoalsList();
+                }
+            });
+        });
+
+        // 评分滑块
+        const ratingSlider = document.getElementById('progress-rating');
+        const ratingValue = document.getElementById('rating-value');
+        ratingSlider.addEventListener('input', () => {
+            ratingValue.textContent = ratingSlider.value;
+        });
+
+        // 保存进展记录
+        document.getElementById('save-progress').addEventListener('click', () => {
+            const date = document.getElementById('progress-date').value;
+            const mainTasks = document.getElementById('main-tasks').value;
+            const challenges = document.getElementById('challenges').value;
+            const learnings = document.getElementById('learnings').value;
+            const nextDayPlan = document.getElementById('next-day-plan').value;
+            const rating = document.getElementById('progress-rating').value;
+            
+            if (!date) {
+                showToast('请选择日期');
+                return;
+            }
+            
+            // 检查是否已有该日期的记录
+            const existingIndex = progressData.findIndex(p => p.date === date);
+            const newProgress = {
+                date,
+                mainTasks,
+                challenges,
+                learnings,
+                nextDayPlan,
+                rating: parseInt(rating)
+            };
+            
+            if (existingIndex !== -1) {
+                progressData[existingIndex] = newProgress;
+            } else {
+                progressData.push(newProgress);
+            }
+            
+            // 按日期排序
+            progressData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            localStorage.setItem('progressData', JSON.stringify(progressData));
+            showToast('进展记录已保存');
+            
+            // 清空表单
+            document.getElementById('main-tasks').value = '';
+            document.getElementById('challenges').value = '';
+            document.getElementById('learnings').value = '';
+            document.getElementById('next-day-plan').value = '';
+            document.getElementById('progress-rating').value = 5;
+            ratingValue.textContent = 5;
+            
+            // 更新最近进展记录
+            loadRecentProgress();
+        });
+
+        // 保存反思记录
+        document.getElementById('save-reflection').addEventListener('click', () => {
+            const date = new Date().toISOString().split('T')[0];
+            const dailyReflection = document.getElementById('daily-reflection').value;
+            const adjustments = document.getElementById('adjustments').value;
+            
+            if (!dailyReflection) {
+                showToast('请填写今日反思');
+                return;
+            }
+            
+            // 检查是否已有该日期的反思记录
+            const existingIndex = reflectionData.findIndex(r => r.date === date);
+            const newReflection = {
+                date,
+                dailyReflection,
+                adjustments
+            };
+            
+            if (existingIndex !== -1) {
+                reflectionData[existingIndex] = newReflection;
+            } else {
+                reflectionData.push(newReflection);
+            }
+            
+            // 按日期排序
+            reflectionData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            localStorage.setItem('reflectionData', JSON.stringify(reflectionData));
+            showToast('反思记录已保存');
+            
+            // 清空表单
+            document.getElementById('daily-reflection').value = '';
+            document.getElementById('adjustments').value = '';
+            
+            // 更新历史反思记录
+            loadReflectionHistory();
+        });
+
+        // 添加目标
+        document.getElementById('add-goal').addEventListener('click', () => {
+            const name = document.getElementById('goal-name').value;
+            const description = document.getElementById('goal-description').value;
+            const startDate = document.getElementById('goal-start-date').value;
+            const endDate = document.getElementById('goal-end-date').value;
+            const priority = document.getElementById('goal-priority').value;
+            
+            if (!name || !startDate || !endDate) {
+                showToast('请填写目标名称和日期');
+                return;
+            }
+            
+            const newGoal = {
+                id: Date.now(),
+                name,
+                description,
+                startDate,
+                endDate,
+                priority,
+                progress: 0,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+            
+            goalsData.push(newGoal);
+            localStorage.setItem('goalsData', JSON.stringify(goalsData));
+            showToast('目标已添加');
+            
+            // 清空表单
+            document.getElementById('goal-name').value = '';
+            document.getElementById('goal-description').value = '';
+            document.getElementById('goal-start-date').value = '';
+            document.getElementById('goal-end-date').value = '';
+            document.getElementById('goal-priority').value = 'medium';
+            
+            // 更新目标列表
+            loadGoalsList();
+        });
+
+        // 加载最近进展记录
+        function loadRecentProgress() {
+            const container = document.getElementById('recent-progress');
+            container.innerHTML = '';
+            
+            if (progressData.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">暂无进展记录</p>';
+                return;
+            }
+            
+            // 只显示最近5条记录
+            const recentData = progressData.slice(0, 5);
+            
+            recentData.forEach(progress => {
+                const date = new Date(progress.date);
+                const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                
+                const progressItem = document.createElement('div');
+                progressItem.className = 'border-l-4 border-indigo-500 pl-4 py-2 fade-in';
+                progressItem.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-medium">${formattedDate}</h3>
+                        <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">${progress.rating}/10</span>
+                    </div>
+                    <p class="text-gray-600 mt-1">${progress.mainTasks || '无主要任务记录'}</p>
+                `;
+                
+                container.appendChild(progressItem);
+            });
+        }
+
+        // 加载进展图表
+        function loadProgressChart() {
+            const ctx = document.getElementById('progress-chart').getContext('2d');
+            
+            // 销毁旧图表
+            if (chart) {
+                chart.destroy();
+            }
+            
+            // 准备数据
+            const last7Days = [];
+            const ratings = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateString = date.toISOString().split('T')[0];
+                const formattedDate = `${date.getMonth() + 1}/${date.getDate()}`;
+                
+                last7Days.push(formattedDate);
+                
+                const progress = progressData.find(p => p.date === dateString);
+                ratings.push(progress ? progress.rating : 0);
+            }
+            
+            // 创建新图表
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: '每日进展评分',
+                        data: ratings,
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: {
+                                stepSize: 2
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 加载目标进度
+        function loadGoalsProgress() {
+            const container = document.getElementById('goals-progress');
+            container.innerHTML = '';
+            
+            if (goalsData.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">暂无目标</p>';
+                return;
+            }
+            
+            goalsData.forEach(goal => {
+                const startDate = new Date(goal.startDate);
+                const endDate = new Date(goal.endDate);
+                const today = new Date();
+                
+                // 计算进度百分比
+                const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+                const elapsedDays = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+                const timeProgress = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
+                
+                const goalItem = document.createElement('div');
+                goalItem.className = 'mb-4';
+                
+                const priorityColor = {
+                    high: 'bg-red-500',
+                    medium: 'bg-yellow-500',
+                    low: 'bg-green-500'
+                }[goal.priority];
+                
+                goalItem.innerHTML = `
+                    <div class="flex justify-between mb-1">
+                        <span class="font-medium">${goal.name}</span>
+                        <span class="text-sm text-gray-500">${goal.progress}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-indigo-600 h-2.5 rounded-full" style="width: ${goal.progress}%"></div>
+                    </div>
+                    <div class="flex justify-between mt-1 text-xs text-gray-500">
+                        <span>时间进度: ${timeProgress}%</span>
+                        <span class="inline-block w-3 h-3 rounded-full ${priorityColor}"></span>
+                    </div>
+                `;
+                
+                container.appendChild(goalItem);
+            });
+        }
+
+        // 加载问题提醒
+        function loadIssuesAlert() {
+            const container = document.getElementById('issues-alert');
+            container.innerHTML = '';
+            
+            const issues = [];
+            
+            // 检查进展评分连续下降
+            if (progressData.length >= 3) {
+                const lastThree = progressData.slice(0, 3);
+                if (lastThree[0].rating < lastThree[1].rating && lastThree[1].rating < lastThree[2].rating) {
+                    issues.push({
+                        type: 'warning',
+                        title: '进展评分连续下降',
+                        description: '最近三天的进展评分持续下降，可能需要调整策略或休息。'
+                    });
+                }
+            }
+            
+            // 检查目标进度落后于时间进度
+            goalsData.forEach(goal => {
+                if (!goal.completed) {
+                    const startDate = new Date(goal.startDate);
+                    const endDate = new Date(goal.endDate);
+                    const today = new Date();
+                    
+                    const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+                    const elapsedDays = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+                    const timeProgress = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
+                    
+                    if (goal.progress < timeProgress - 20) {
+                        issues.push({
+                            type: 'danger',
+                            title: `目标 "${goal.name}" 进度落后`,
+                            description: `目标进度为 ${goal.progress}%，但时间已过去 ${timeProgress}%，需要加快进度。`
+                        });
+                    }
+                }
+            });
+            
+            // 检查是否长期没有反思
+            if (reflectionData.length > 0) {
+                const lastReflection = new Date(reflectionData[0].date);
+                const daysSinceReflection = Math.ceil((new Date() - lastReflection) / (1000 * 60 * 60 * 24));
+                
+                if (daysSinceReflection > 7) {
+                    issues.push({
+                        type: 'info',
+                        title: '长期未进行反思',
+                        description: `您已经 ${daysSinceReflection} 天没有进行反思了，建议定期反思以调整方向。`
+                    });
+                }
+            } else {
+                issues.push({
+                    type: 'info',
+                    title: '尚未进行反思',
+                    description: '您还没有进行过反思，建议定期反思以调整方向。'
+                });
+            }
+            
+            // 检查是否有高优先级目标
+            const highPriorityGoals = goalsData.filter(g => g.priority === 'high' && !g.completed);
+            if (highPriorityGoals.length > 0) {
+                issues.push({
+                    type: 'info',
+                    title: '有高优先级目标',
+                    description: `您有 ${highPriorityGoals.length} 个高优先级目标需要关注。`
+                });
+            }
+            
+            if (issues.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">暂无特别需要注意的问题</p>';
+                return;
+            }
+            
+            issues.forEach(issue => {
+                const issueItem = document.createElement('div');
+                issueItem.className = `p-3 rounded-md mb-3 fade-in ${
+                    issue.type === 'danger' ? 'bg-red-50 border-l-4 border-red-500' :
+                    issue.type === 'warning' ? 'bg-yellow-50 border-l-4 border-yellow-500' :
+                    'bg-blue-50 border-l-4 border-blue-500'
+                }`;
+                
+                const icon = {
+                    danger: 'fa-exclamation-circle text-red-500',
+                    warning: 'fa-exclamation-triangle text-yellow-500',
+                    info: 'fa-info-circle text-blue-500'
+                }[issue.type];
+                
+                issueItem.innerHTML = `
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium">${issue.title}</h3>
+                            <div class="mt-1 text-sm text-gray-600">
+                                <p>${issue.description}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(issueItem);
+            });
+        }
+
+        // 加载反思提醒
+        function loadReflectionAlert() {
+            const container = document.getElementById('reflection-alert');
+            container.innerHTML = '';
+            
+            // 检查是否需要反思
+            const today = new Date().toISOString().split('T')[0];
+            const hasTodayReflection = reflectionData.some(r => r.date === today);
+            const hasTodayProgress = progressData.some(p => p.date === today);
+            
+            let alertClass = 'bg-blue-50 border-l-4 border-blue-500';
+            let alertIcon = 'fa-info-circle text-blue-500';
+            let alertTitle = '建议进行反思';
+            let alertMessage = '定期反思可以帮助您确认方向是否正确，避免瞎忙。';
+            
+            // 检查进展评分是否较低
+            if (hasTodayProgress) {
+                const todayProgress = progressData.find(p => p.date === today);
+                if (todayProgress.rating <= 5) {
+                    alertClass = 'bg-yellow-50 border-l-4 border-yellow-500';
+                    alertIcon = 'fa-exclamation-triangle text-yellow-500';
+                    alertTitle = '进展评分较低，建议深入反思';
+                    alertMessage = '您今天的进展评分较低，建议反思原因并调整策略。';
+                }
+            }
+            
+            // 检查是否连续多天没有反思
+            if (reflectionData.length > 0) {
+                const lastReflection = new Date(reflectionData[0].date);
+                const daysSinceReflection = Math.ceil((new Date() - lastReflection) / (1000 * 60 * 60 * 24));
+                
+                if (daysSinceReflection > 3) {
+                    alertClass = 'bg-red-50 border-l-4 border-red-500';
+                    alertIcon = 'fa-exclamation-circle text-red-500';
+                    alertTitle = '已多天未进行反思';
+                    alertMessage = `您已经 ${daysSinceReflection} 天没有进行反思了，强烈建议立即反思以调整方向。`;
+                    container.classList.add('pulse');
+                }
+            }
+            
+            container.className = `mb-6 p-4 rounded-md ${alertClass}`;
+            container.innerHTML = `
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas ${alertIcon}"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium">${alertTitle}</h3>
+                        <div class="mt-2 text-sm text-gray-600">
+                            <p>${alertMessage}</p>
+                        </div>
+                        <div class="mt-4">
+                            <div class="-mx-2 -my-1.5 flex">
+                                <button onclick="document.getElementById('daily-reflection').focus()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm font-medium">
+                                    立即反思
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 加载反思历史
+        function loadReflectionHistory() {
+            const container = document.getElementById('reflection-history');
+            container.innerHTML = '';
+            
+            if (reflectionData.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">暂无反思记录</p>';
+                return;
+            }
+            
+            // 只显示最近5条记录
+            const recentData = reflectionData.slice(0, 5);
+            
+            recentData.forEach(reflection => {
+                const date = new Date(reflection.date);
+                const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                
+                const reflectionItem = document.createElement('div');
+                reflectionItem.className = 'border border-gray-200 rounded-md p-4 mb-4 fade-in';
+                reflectionItem.innerHTML = `
+                    <h3 class="font-medium text-gray-800">${formattedDate}</h3>
+                    <div class="mt-2">
+                        <h4 class="text-sm font-medium text-gray-700">反思内容：</h4>
+                        <p class="text-gray-600 text-sm mt-1">${reflection.dailyReflection}</p>
+                    </div>
+                    ${reflection.adjustments ? `
+                    <div class="mt-3">
+                        <h4 class="text-sm font-medium text-gray-700">调整方向：</h4>
+                        <p class="text-gray-600 text-sm mt-1">${reflection.adjustments}</p>
+                    </div>
+                    ` : ''}
+                `;
+                
+                container.appendChild(reflectionItem);
+            });
+        }
+
+        // 加载目标列表
+        function loadGoalsList() {
+            const container = document.getElementById('goals-list');
+            container.innerHTML = '';
+            
+            if (goalsData.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">暂无目标</p>';
+                return;
+            }
+            
+            goalsData.forEach(goal => {
+                const startDate = new Date(goal.startDate);
+                const endDate = new Date(goal.endDate);
+                const formattedStartDate = `${startDate.getFullYear()}-${(startDate.getMonth() + 1).toString().padStart(2, '0')}-${startDate.getDate().toString().padStart(2, '0')}`;
+                const formattedEndDate = `${endDate.getFullYear()}-${(endDate.getMonth() + 1).toString().padStart(2, '0')}-${endDate.getDate().toString().padStart(2, '0')}`;
+                
+                const goalItem = document.createElement('div');
+                goalItem.className = 'border border-gray-200 rounded-md p-4 mb-4 fade-in';
+                
+                const priorityColor = {
+                    high: 'text-red-600',
+                    medium: 'text-yellow-600',
+                    low: 'text-green-600'
+                }[goal.priority];
+                
+                const priorityText = {
+                    high: '高',
+                    medium: '中',
+                    low: '低'
+                }[goal.priority];
+                
+                goalItem.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-medium text-gray-800 ${goal.completed ? 'line-through' : ''}">${goal.name}</h3>
+                            <p class="text-gray-600 text-sm mt-1">${goal.description}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <span class="text-xs px-2 py-1 rounded-full bg-gray-100 ${priorityColor}">${priorityText}优先级</span>
+                            ${goal.completed ? '<span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">已完成</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="mt-3 flex justify-between items-center">
+                        <div class="text-sm text-gray-500">
+                            <span>${formattedStartDate} 至 ${formattedEndDate}</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="updateGoalProgress(${goal.id})" class="text-indigo-600 hover:text-indigo-800 text-sm">
+                                <i class="fas fa-edit mr-1"></i>更新进度
+                            </button>
+                            <button onclick="toggleGoalCompletion(${goal.id})" class="text-sm ${goal.completed ? 'text-yellow-600 hover:text-yellow-800' : 'text-green-600 hover:text-green-800'}">
+                                <i class="fas ${goal.completed ? 'fa-undo' : 'fa-check'} mr-1"></i>${goal.completed ? '标记未完成' : '标记完成'}
+                            </button>
+                            <button onclick="deleteGoal(${goal.id})" class="text-red-600 hover:text-red-800 text-sm">
+                                <i class="fas fa-trash mr-1"></i>删除
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-indigo-600 h-2.5 rounded-full" style="width: ${goal.progress}%"></div>
+                        </div>
+                        <div class="text-right text-xs text-gray-500 mt-1">${goal.progress}%</div>
+                    </div>
+                `;
+                
+                container.appendChild(goalItem);
+            });
+        }
+
+        // 更新目标进度
+        function updateGoalProgress(goalId) {
+            const goal = goalsData.find(g => g.id === goalId);
+            if (!goal) return;
+            
+            const newProgress = prompt(`请输入 "${goal.name}" 的新进度 (0-100):`, goal.progress);
+            if (newProgress === null) return;
+            
+            const progress = parseInt(newProgress);
+            if (isNaN(progress) || progress < 0 || progress > 100) {
+                showToast('请输入0-100之间的数字');
+                return;
+            }
+            
+            goal.progress = progress;
+            if (progress === 100) {
+                goal.completed = true;
+            }
+            
+            localStorage.setItem('goalsData', JSON.stringify(goalsData));
+            showToast('目标进度已更新');
+            loadGoalsList();
+        }
+
+        // 切换目标完成状态
+        function toggleGoalCompletion(goalId) {
+            const goal = goalsData.find(g => g.id === goalId);
+            if (!goal) return;
+            
+            goal.completed = !goal.completed;
+            if (goal.completed) {
+                goal.progress = 100;
+            }
+            
+            localStorage.setItem('goalsData', JSON.stringify(goalsData));
+            showToast(`目标已标记为${goal.completed ? '完成' : '未完成'}`);
+            loadGoalsList();
+        }
+
+        // 删除目标
+        function deleteGoal(goalId) {
+            if (!confirm('确定要删除这个目标吗？')) return;
+            
+            goalsData = goalsData.filter(g => g.id !== goalId);
+            localStorage.setItem('goalsData', JSON.stringify(goalsData));
+            showToast('目标已删除');
+            loadGoalsList();
+        }
+
+        // 显示提示消息
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.classList.remove('translate-y-20');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20');
+            }, 3000);
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRecentProgress();
+        });
+    </script>
+</body>
+</html>
