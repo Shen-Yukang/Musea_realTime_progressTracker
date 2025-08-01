@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import authService from '../../services/authService';
 import ShareManager from '../share/ShareManager';
 import ProgressTracker from '../progress/ProgressTracker';
+import OverviewDashboard from '../overview/OverviewDashboard';
+import AnalyticsDashboard from '../analytics/AnalyticsDashboard';
+import GoalAnalytics from '../analytics/GoalAnalytics';
+import SmartReminders from '../analytics/SmartReminders';
+import GoalManager from '../goals/GoalManager';
+import ReflectionManager from '../reflection/ReflectionManager';
 import './Dashboard.css';
 
 const Dashboard = ({ onLogout }) => {
@@ -122,6 +128,36 @@ const Dashboard = ({ onLogout }) => {
           📊 概览
         </button>
         <button
+          className={`tab-button ${activeTab === 'goals' ? 'active' : ''}`}
+          onClick={() => setActiveTab('goals')}
+        >
+          🎯 目标管理
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'reflections' ? 'active' : ''}`}
+          onClick={() => setActiveTab('reflections')}
+        >
+          💭 反思记录
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'analytics' ? 'active' : ''}`}
+          onClick={() => setActiveTab('analytics')}
+        >
+          📈 数据分析
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'goal-analytics' ? 'active' : ''}`}
+          onClick={() => setActiveTab('goal-analytics')}
+        >
+          🎯 目标分析
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'reminders' ? 'active' : ''}`}
+          onClick={() => setActiveTab('reminders')}
+        >
+          💡 智能提醒
+        </button>
+        <button
           className={`tab-button ${activeTab === 'share' ? 'active' : ''}`}
           onClick={() => setActiveTab('share')}
         >
@@ -135,6 +171,34 @@ const Dashboard = ({ onLogout }) => {
         )}
 
         {activeTab === 'overview' && (
+          <OverviewDashboard />
+        )}
+
+        {activeTab === 'goals' && (
+          <GoalManager />
+        )}
+
+        {activeTab === 'reflections' && (
+          <ReflectionManager />
+        )}
+
+        {activeTab === 'analytics' && (
+          <AnalyticsDashboard />
+        )}
+
+        {activeTab === 'goal-analytics' && (
+          <GoalAnalytics />
+        )}
+
+        {activeTab === 'reminders' && (
+          <SmartReminders />
+        )}
+
+        {activeTab === 'share' && (
+          <ShareManager />
+        )}
+
+        {activeTab === 'system-status' && (
           <>
             <div className="milestone-status">
           <h2>🎉 Milestone 2 完成状态</h2>
@@ -222,10 +286,6 @@ const Dashboard = ({ onLogout }) => {
           </div>
         </div>
           </>
-        )}
-
-        {activeTab === 'share' && (
-          <ShareManager />
         )}
       </div>
     </div>
