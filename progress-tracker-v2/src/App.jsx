@@ -3,13 +3,15 @@ import { Provider } from 'react-redux';
 import { store } from './store';
 import AuthPage from './components/auth/AuthPage';
 import Dashboard from './components/dashboard/Dashboard';
-import ToastContainer from './components/common/ToastContainer';
+import DataMigration from './components/migration/DataMigration';
+import { NotificationProvider } from './components/common/NotificationSystem';
 import authService from './services/authService';
 import './App.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showMigration, setShowMigration] = useState(false);
 
   useEffect(() => {
     // 检查用户是否已登录
@@ -21,6 +23,8 @@ function App() {
           const profileResponse = await authService.getProfile();
           if (profileResponse && profileResponse.success) {
             setIsAuthenticated(true);
+            // 已登录用户不需要显示迁移界面
+            setShowMigration(false);
           } else {
             authService.logout();
           }
@@ -38,6 +42,11 @@ function App() {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
+    setShowMigration(true);
+  };
+
+  const handleMigrationComplete = () => {
+    setShowMigration(false);
   };
 
   const handleLogout = () => {
@@ -58,14 +67,17 @@ function App() {
 
   return (
     <Provider store={store}>
-      <div className="App">
-        {isAuthenticated ? (
-          <Dashboard onLogout={handleLogout} />
-        ) : (
-          <AuthPage onAuthSuccess={handleLogin} />
-        )}
-        <ToastContainer />
-      </div>
+      <NotificationProvider>
+        <div className="App">
+          {!isAuthenticated ? (
+            <AuthPage onAuthSuccess={handleLogin} />
+          ) : showMigration ? (
+            <DataMigration onComplete={handleMigrationComplete} />
+          ) : (
+            <Dashboard onLogout={handleLogout} />
+          )}
+        </div>
+      </NotificationProvider>
     </Provider>
   );
 }

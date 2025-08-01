@@ -1,17 +1,10 @@
 const { Sequelize } = require('sequelize');
 
+// 使用配置文件而不是硬编码
+const config = require('../config/database')[process.env.NODE_ENV || 'development'];
+
 // 数据库配置
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: './database.sqlite',
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
-  pool: {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
-  }
-});
+const sequelize = new Sequelize(config);
 
 // 导入模型
 const UserModel = require('./User');
