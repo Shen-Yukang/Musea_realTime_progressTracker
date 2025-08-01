@@ -4,7 +4,7 @@ import { store } from './store';
 import AuthPage from './components/auth/AuthPage';
 import Dashboard from './components/dashboard/Dashboard';
 import DataMigration from './components/migration/DataMigration';
-import ToastContainer from './components/common/ToastContainer';
+import { NotificationProvider } from './components/common/NotificationSystem';
 import authService from './services/authService';
 import './App.css';
 
@@ -67,16 +67,17 @@ function App() {
 
   return (
     <Provider store={store}>
-      <div className="App">
-        {!isAuthenticated ? (
-          <AuthPage onAuthSuccess={handleLogin} />
-        ) : showMigration ? (
-          <DataMigration onComplete={handleMigrationComplete} />
-        ) : (
-          <Dashboard onLogout={handleLogout} />
-        )}
-        <ToastContainer />
-      </div>
+      <NotificationProvider>
+        <div className="App">
+          {!isAuthenticated ? (
+            <AuthPage onAuthSuccess={handleLogin} />
+          ) : showMigration ? (
+            <DataMigration onComplete={handleMigrationComplete} />
+          ) : (
+            <Dashboard onLogout={handleLogout} />
+          )}
+        </div>
+      </NotificationProvider>
     </Provider>
   );
 }

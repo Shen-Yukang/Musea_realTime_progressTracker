@@ -8,6 +8,8 @@ import GoalAnalytics from '../analytics/GoalAnalytics';
 import SmartReminders from '../analytics/SmartReminders';
 import GoalManager from '../goals/GoalManager';
 import ReflectionManager from '../reflection/ReflectionManager';
+import { ResponsiveTabs } from '../layout/ResponsiveLayout';
+import { NotificationProvider } from '../common/NotificationSystem';
 import './Dashboard.css';
 
 const Dashboard = ({ onLogout }) => {
@@ -95,200 +97,80 @@ const Dashboard = ({ onLogout }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  const tabs = [
+    { id: 'progress', label: '今日进展', icon: '📝' },
+    { id: 'overview', label: '概览', icon: '📊' },
+    { id: 'goals', label: '目标管理', icon: '🎯' },
+    { id: 'reflections', label: '反思记录', icon: '💭' },
+    { id: 'analytics', label: '数据分析', icon: '📈' },
+    { id: 'goal-analytics', label: '目标分析', icon: '🎯' },
+    { id: 'reminders', label: '智能提醒', icon: '💡' },
+    { id: 'share', label: '分享管理', icon: '🔗' }
+  ];
+
   return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <div className="user-info">
-          {user ? (
-            <>
-              <h1>欢迎回来，{user.username}!</h1>
-              <p>邮箱: {user.email}</p>
-              <p>注册时间: {new Date(user.createdAt).toLocaleDateString()}</p>
-            </>
-          ) : (
-            <h1>加载中...</h1>
-          )}
-        </div>
-        <button onClick={handleLogout} className="btn-logout">
-          登出
-        </button>
-      </div>
-
-      <div className="dashboard-tabs">
-        <button
-          className={`tab-button ${activeTab === 'progress' ? 'active' : ''}`}
-          onClick={() => setActiveTab('progress')}
-        >
-          📝 今日进展
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
-          onClick={() => setActiveTab('overview')}
-        >
-          📊 概览
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'goals' ? 'active' : ''}`}
-          onClick={() => setActiveTab('goals')}
-        >
-          🎯 目标管理
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'reflections' ? 'active' : ''}`}
-          onClick={() => setActiveTab('reflections')}
-        >
-          💭 反思记录
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'analytics' ? 'active' : ''}`}
-          onClick={() => setActiveTab('analytics')}
-        >
-          📈 数据分析
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'goal-analytics' ? 'active' : ''}`}
-          onClick={() => setActiveTab('goal-analytics')}
-        >
-          🎯 目标分析
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'reminders' ? 'active' : ''}`}
-          onClick={() => setActiveTab('reminders')}
-        >
-          💡 智能提醒
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'share' ? 'active' : ''}`}
-          onClick={() => setActiveTab('share')}
-        >
-          🔗 分享管理
-        </button>
-      </div>
-
-      <div className="dashboard-content">
-        {activeTab === 'progress' && (
-          <ProgressTracker />
-        )}
-
-        {activeTab === 'overview' && (
-          <OverviewDashboard />
-        )}
-
-        {activeTab === 'goals' && (
-          <GoalManager />
-        )}
-
-        {activeTab === 'reflections' && (
-          <ReflectionManager />
-        )}
-
-        {activeTab === 'analytics' && (
-          <AnalyticsDashboard />
-        )}
-
-        {activeTab === 'goal-analytics' && (
-          <GoalAnalytics />
-        )}
-
-        {activeTab === 'reminders' && (
-          <SmartReminders />
-        )}
-
-        {activeTab === 'share' && (
-          <ShareManager />
-        )}
-
-        {activeTab === 'system-status' && (
-          <>
-            <div className="milestone-status">
-          <h2>🎉 Milestone 2 完成状态</h2>
-          <div className="status-grid">
-            <div className="status-item completed">
-              <span className="status-icon">✅</span>
-              <span>用户认证系统</span>
-            </div>
-            <div className="status-item completed">
-              <span className="status-icon">✅</span>
-              <span>数据库设计</span>
-            </div>
-            <div className="status-item completed">
-              <span className="status-icon">✅</span>
-              <span>RESTful API</span>
-            </div>
-            <div className="status-item completed">
-              <span className="status-icon">✅</span>
-              <span>数据同步机制</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="api-test-section">
-          <div className="section-header">
-            <h2>🧪 API 连接测试</h2>
-            <button 
-              onClick={runAllTests} 
-              disabled={loading}
-              className="btn-test"
-            >
-              {loading ? '测试中...' : '重新测试'}
-            </button>
-          </div>
-
-          <div className="api-test-grid">
-            {Object.entries(apiTest).map(([name, result]) => (
-              <div key={name} className={`api-test-item ${result?.success ? 'success' : 'error'}`}>
-                <div className="api-name">
-                  {name === 'progress' && '📊 进展记录 API'}
-                  {name === 'reflections' && '💭 反思记录 API'}
-                  {name === 'goals' && '🎯 目标管理 API'}
-                  {name === 'sync' && '🔄 数据同步 API'}
-                  {name === 'share' && '🔗 分享功能 API'}
+    <NotificationProvider>
+      <div className="min-h-screen bg-gray-50">
+        {/* 头部 */}
+        <header className="bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <h1 className="text-xl font-bold text-gray-900">进展追踪器</h1>
                 </div>
-                <div className="api-status">
-                  {result ? (
-                    <>
-                      <span className={`status-badge ${result.success ? 'success' : 'error'}`}>
-                        {result.success ? '✅ 正常' : '❌ 异常'}
-                      </span>
-                      <span className="status-code">{result.status}</span>
-                    </>
-                  ) : (
-                    <span className="status-badge loading">⏳ 测试中</span>
-                  )}
-                </div>
-                {result?.message && (
-                  <div className="api-message">{result.message}</div>
+                {user && (
+                  <div className="hidden md:block ml-6">
+                    <div className="flex items-center space-x-4">
+                      <span className="text-sm text-gray-600">欢迎回来，</span>
+                      <span className="text-sm font-medium text-gray-900">{user.username}</span>
+                    </div>
+                  </div>
                 )}
               </div>
-            ))}
-          </div>
-        </div>
 
-        <div className="next-steps">
-          <h2>🚀 下一步计划</h2>
-          <div className="steps-list">
-            <div className="step-item">
-              <span className="step-number">1</span>
-              <span>完善前端界面和用户体验</span>
-            </div>
-            <div className="step-item">
-              <span className="step-number">2</span>
-              <span>实现数据可视化和统计功能</span>
-            </div>
-            <div className="step-item completed">
-              <span className="step-number">3</span>
-              <span>✅ 开发分享功能 (Milestone 3) - 已完成</span>
-            </div>
-            <div className="step-item">
-              <span className="step-number">4</span>
-              <span>添加实时功能 (Milestone 4)</span>
+              <div className="flex items-center space-x-4">
+                {user && (
+                  <div className="hidden md:block text-xs text-gray-500">
+                    注册时间: {new Date(user.createdAt).toLocaleDateString()}
+                  </div>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+                >
+                  登出
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-          </>
-        )}
+        </header>
+
+        {/* 主内容区域 */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* 标签页导航 */}
+          <div className="mb-6">
+            <ResponsiveTabs
+              tabs={tabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+          </div>
+
+          {/* 内容区域 */}
+          <div className="bg-white rounded-lg shadow-sm min-h-[600px]">
+            {activeTab === 'progress' && <ProgressTracker />}
+            {activeTab === 'overview' && <OverviewDashboard />}
+            {activeTab === 'goals' && <GoalManager />}
+            {activeTab === 'reflections' && <ReflectionManager />}
+            {activeTab === 'analytics' && <AnalyticsDashboard />}
+            {activeTab === 'goal-analytics' && <GoalAnalytics />}
+            {activeTab === 'reminders' && <SmartReminders />}
+            {activeTab === 'share' && <ShareManager />}
+          </div>
+        </main>
       </div>
-    </div>
+    </NotificationProvider>
   );
 };
 
