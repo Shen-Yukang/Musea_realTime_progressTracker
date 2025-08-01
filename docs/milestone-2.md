@@ -575,3 +575,40 @@ describe('Authentication', () => {
 - `POST /api/sync/upload` - 批量上传数据
 - `GET /api/sync/status` - 获取同步状态
 - `GET /api/sync/backup` - 数据备份下载
+
+---
+
+## 🚨 发现的关键问题 (2025-08-01 复盘)
+
+### **数据库配置不一致问题**
+
+**问题描述**:
+当前代码在 `src/models/index.js` 中硬编码使用 SQLite:
+```javascript
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: './database.sqlite',
+  // ...
+});
+```
+
+但 Docker Compose 配置使用 PostgreSQL，且 `src/config/database.js` 配置文件存在但未被使用。
+
+**影响**:
+- 生产环境可能无法启动
+- PostgreSQL 容器资源浪费
+- 开发/生产环境数据不一致
+
+**修复方案**:
+```javascript
+// 修改 src/models/index.js
+const config = require('../config/database')[process.env.NODE_ENV || 'development'];
+const sequelize = new Sequelize(config);
+```
+
+### **下一步优先任务**
+1. 修复数据库配置不一致
+2. 实现前后端 API 集成
+3. 验证 Docker 部署流程
+
+**状态更新**: 需要立即修复数据库配置问题才能继续 Milestone 3
