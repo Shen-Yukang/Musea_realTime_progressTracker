@@ -216,3 +216,5 @@
 {"email":"test@example.com","level":"info","message":"User registered successfully","service":"progress-tracker-api","timestamp":"2025-08-01T19:59:59.883Z","userId":"2f732164-7345-4518-9b71-c64468ac52d0","username":"testuser"}
 {"email":"test@example.com","level":"info","message":"User registered successfully","service":"progress-tracker-api","timestamp":"2025-08-01T20:00:00.222Z","userId":"cbdadd98-2bfb-4143-a891-4aee6cdb01a5","username":"testuser"}
 {"email":"test@example.com","level":"info","message":"User registered successfully","service":"progress-tracker-api","timestamp":"2025-08-01T20:00:00.567Z","userId":"d3e85986-d0f6-486a-8abe-1832a2bb8081","username":"testuser"}
+{"email":"test@example.com","level":"info","message":"User registered successfully","service":"progress-tracker-api","timestamp":"2025-08-01T20:04:31.513Z","userId":"f79346f5-881f-40f1-8f29-112ea96f6298","username":"testuser"}
+{"email":"test@example.com","level":"info","message":"User logged in successfully","service":"progress-tracker-api","timestamp":"2025-08-01T20:04:37.944Z","userId":"f79346f5-881f-40f1-8f29-112ea96f6298"}
