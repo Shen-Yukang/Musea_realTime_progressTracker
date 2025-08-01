@@ -8,6 +8,7 @@ import GoalAnalytics from '../analytics/GoalAnalytics';
 import SmartReminders from '../analytics/SmartReminders';
 import GoalManager from '../goals/GoalManager';
 import ReflectionManager from '../reflection/ReflectionManager';
+import RealtimeShare from '../realtime/RealtimeShare';
 import { ResponsiveTabs } from '../layout/ResponsiveLayout';
 import { NotificationProvider } from '../common/NotificationSystem';
 import './Dashboard.css';
@@ -105,7 +106,8 @@ const Dashboard = ({ onLogout }) => {
     { id: 'analytics', label: '数据分析', icon: '📈' },
     { id: 'goal-analytics', label: '目标分析', icon: '🎯' },
     { id: 'reminders', label: '智能提醒', icon: '💡' },
-    { id: 'share', label: '分享管理', icon: '🔗' }
+    { id: 'share', label: '分享管理', icon: '🔗' },
+    { id: 'realtime', label: '实时分享', icon: '📡' }
   ];
 
   return (
@@ -167,6 +169,7 @@ const Dashboard = ({ onLogout }) => {
             {activeTab === 'goal-analytics' && <GoalAnalytics />}
             {activeTab === 'reminders' && <SmartReminders />}
             {activeTab === 'share' && <ShareManager />}
+            {activeTab === 'realtime' && <RealtimeShare />}
           </div>
         </main>
       </div>
