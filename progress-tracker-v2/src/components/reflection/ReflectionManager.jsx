@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { db } from '../../db/index.js';
+import reflectionService from '../../services/reflectionService';
+import progressService from '../../services/progressService';
+import { showError, showSuccess, withErrorHandling } from '../../utils/errorHandler';
 
 const ReflectionManager = () => {
   const [formData, setFormData] = useState({
@@ -14,14 +16,10 @@ const ReflectionManager = () => {
   // 加载反思历史
   const loadReflectionHistory = async () => {
     try {
-      const reflections = await db.reflections
-        .orderBy('date')
-        .reverse()
-        .limit(5)
-        .toArray();
+      const reflections = await reflectionService.getRecentReflections(5);
       setReflectionHistory(reflections);
     } catch (error) {
-      console.error('加载反思历史失败:', error);
+      showError(error, '加载反思历史');
     }
   };
 
@@ -29,14 +27,27 @@ const ReflectionManager = () => {
   const generateReflectionAlert = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const todayReflection = await db.reflections.where('date').equals(today).first();
-      
+
+      // 检查今天是否已有反思记录
+      let todayReflection = null;
+      try {
+        const reflections = await reflectionService.getReflections({
+          startDate: today,
+          endDate: today,
+          limit: 1
+        });
+        todayReflection = reflections.reflections && reflections.reflections.length > 0 ? reflections.reflections[0] : null;
+      } catch (error) {
+        console.warn('检查今日反思记录失败:', error);
+      }
+
       // 获取最近的进展记录
-      const recentProgress = await db.progress
-        .orderBy('date')
-        .reverse()
-        .limit(3)
-        .toArray();
+      let recentProgress = [];
+      try {
+        recentProgress = await progressService.getProgressList(3);
+      } catch (error) {
+        console.warn('获取最近进展记录失败:', error);
+      }
 
       let alertClass = 'info';
       let alertTitle = '建议进行反思';
@@ -100,33 +111,28 @@ const ReflectionManager = () => {
   // 保存反思记录
   const handleSave = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.dailyReflection.trim()) {
-      setMessage('请填写今日反思');
-      setTimeout(() => setMessage(''), 3000);
+      showError(new Error('请填写今日反思'), '表单验证');
       return;
     }
 
     setLoading(true);
     try {
       const today = new Date().toISOString().split('T')[0];
-      const existingReflection = await db.reflections.where('date').equals(today).first();
-      
+
       const reflectionData = {
         date: today,
         content: formData.dailyReflection,
         adjustments: formData.adjustments,
-        updatedAt: new Date().toISOString()
+        type: 'daily'
       };
 
-      if (existingReflection) {
-        await db.reflections.where('date').equals(today).modify(reflectionData);
-        setMessage('反思记录已更新');
-      } else {
-        reflectionData.createdAt = new Date().toISOString();
-        await db.reflections.add(reflectionData);
-        setMessage('反思记录已保存');
-      }
+      const result = await withErrorHandling(
+        () => reflectionService.saveReflection(reflectionData),
+        '保存反思记录',
+        result.message
+      );
 
       // 清空表单
       setFormData({
@@ -138,11 +144,8 @@ const ReflectionManager = () => {
       await loadReflectionHistory();
       await generateReflectionAlert();
 
-      setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('保存反思记录失败:', error);
-      setMessage('保存失败，请重试');
-      setTimeout(() => setMessage(''), 3000);
+      // 错误已经在 withErrorHandling 中处理了
     } finally {
       setLoading(false);
     }
